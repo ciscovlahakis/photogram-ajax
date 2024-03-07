@@ -1,7 +1,6 @@
 class CommentsController < ApplicationController
-  before_action :set_comment, only: %i[ show edit update destroy ]
-
-  before_action :ensure_current_user_is_owner, only: [:destroy, :update, :edit]
+  before_action :set_comment, only: %i[show edit update destroy]
+  before_action :ensure_current_user_is_owner, only: %i[destroy update edit]
 
   # GET /comments or /comments.json
   def index
@@ -21,6 +20,7 @@ class CommentsController < ApplicationController
   def edit
     respond_to do |format|
       format.html
+      format.js # Ensuring both HTML and JavaScript formats are supported for the edit action
     end
   end
 
@@ -33,6 +33,7 @@ class CommentsController < ApplicationController
       if @comment.save
         format.html { redirect_back fallback_location: root_path, notice: "Comment was successfully created." }
         format.json { render :show, status: :created, location: @comment }
+        format.js # Support for JavaScript responses
       else
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @comment.errors, status: :unprocessable_entity }
@@ -46,6 +47,7 @@ class CommentsController < ApplicationController
       if @comment.update(comment_params)
         format.html { redirect_to root_url, notice: "Comment was successfully updated." }
         format.json { render :show, status: :ok, location: @comment }
+        format.js # Adding support for JavaScript responses in the update action as well
       else
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @comment.errors, status: :unprocessable_entity }
@@ -59,6 +61,7 @@ class CommentsController < ApplicationController
     respond_to do |format|
       format.html { redirect_back fallback_location: root_url, notice: "Comment was successfully destroyed." }
       format.json { head :no_content }
+      format.js # Confirming the support for JavaScript responses in the destroy action
     end
   end
 
@@ -68,6 +71,7 @@ class CommentsController < ApplicationController
       @comment = Comment.find(params[:id])
     end
 
+    # Ensure current user is the owner of the comment before allowing certain actions
     def ensure_current_user_is_owner
       if current_user != @comment.author
         redirect_back fallback_location: root_url, alert: "You're not authorized for that."
